@@ -11,37 +11,55 @@ Attributes:
 """
 
 from base_caching import BaseCaching
-from collections import OrderedDict
 
 
 class MRUCache(BaseCaching):
+    """
+    A caching system that inherits from BaseCaching and uses MRU algorithm.
+    """
+
     def __init__(self):
-        """Initializes the MRU cache."""
-        super().__init__()
-        self.cache_data = OrderedDict()
+        """
+        Initialize the MRU cache.
+        """
+        super().__init__()  # Call the parent class constructor
+        self.usage_order = []  # Maintain order of keys based on usage
 
     def put(self, key, item):
-        """Adds an item to the cache.
+        """
+        Add an item to the cache using MRU algorithm.
 
         Args:
-            key: The identifier for the item.
-            item: The value to be stored.
+            key: The key for the cache entry.
+            item: The value to be stored in the cache.
+
+        Notes:
+            If key or item is None, this method does nothing.
+            If the cache size exceeds BaseCaching.MAX_ITEMS, discard
+            the most recently used item.
         """
-        if key and item:
+        if key is not None and item is not None:
+            if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
+                # Discard the most recently used item
+                mru_key = self.usage_order.pop()
+                print(f"DISCARD: {mru_key}")
+                del self.cache_data[mru_key]
             self.cache_data[key] = item
-        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
-            mru_key, _ = self.cache_data.popitem(False)
-            print("DISCARD:", mru_key)
+            self.usage_order.append(key)
 
     def get(self, key):
-        """Retrieves an item from the cache based on its key.
+        """
+        Retrieve an item from the cache.
 
         Args:
             key: The key to look up in the cache.
 
         Returns:
-            The corresponding item if found; otherwise, None.
+            The value associated with the key, or None if not found.
         """
-        if key is not None and key in self.cache_data:
-            self.cache_data.move_to_end(key, last=False)
-        return self.cache_data.get(key, None)
+        if key in self.cache_data:
+            # Update usage order (move key to the end)
+            self.usage_order.remove(key)
+            self.usage_order.append(key)
+            return self.cache_data[key]
+        return None

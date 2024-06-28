@@ -13,64 +13,64 @@ Attributes:
 """
 
 from base_caching import BaseCaching
-from collections import OrderedDict
 
 
 class LFUCache(BaseCaching):
-    def __init__(self):
-        """Initializes the LFU cache."""
-        super().__init__()
-        self.cache_data = OrderedDict()
-        self.keys_freq = []
+    """
+    A caching system that inherits from BaseCaching and uses LFU algorithm.
+    """
 
-    def __reorder_items(self, mru_key):
-        """Reorders the items in this cache based on the most recently used
-        item."""
-        max_positions = []
-        mru_freq = 0
-        mru_pos = 0
-        ins_pos = 0
-        for i, key_freq in enumerate(self.keys_freq):
-            if key_freq[0] == mru_key:
-                mru_freq = key_freq[1] + 1
-                mru_pos = i
-                break
-            elif len(max_positions) == 0:
-                max_positions.append(i)
-            elif key_freq[1] < self.keys_freq[max_positions[-1]][1]:
-                max_positions.append(i)
-        max_positions.reverse()
-        for pos in max_positions:
-            if self.keys_freq[pos][1] >= mru_freq:
-                break
-            ins_pos = pos
-        self.keys_freq.pop(mru_pos)
-        self.keys_freq.insert(ins_pos, [mru_key, mru_freq])
+    def __init__(self):
+        """
+        Initialize the LFU cache.
+        """
+        super().__init__()
+        self.usage_count = {}
 
     def put(self, key, item):
-        """Adds an item to the cache, reordering items based on access
-        frequency."""
-        if key is None or item is None:
-            return
-        if key not in self.cache_data:
-            if len(self.cache_data) + 1 > BaseCaching.MAX_ITEMS:
-                lfu_key, _ = self.keys_freq[-1]
-                self.cache_data.pop(lfu_key)
-                self.keys_freq.pop()
-                print("DISCARD:", lfu_key)
+        """
+        Add an item to the cache using LFU algorithm.
+
+        Args:
+            key: The key for the cache entry.
+            item: The value to be stored in the cache.
+
+        Notes:
+            If key or item is None, this method does nothing.
+            If the cache size exceeds BaseCaching.MAX_ITEMS, discard the least
+            frequently used item.
+            If multiple items have the same least frequency, use LRU algorithm
+            to break ties.
+        """
+        if key is not None and item is not None:
+            if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
+                min_usage = min(self.usage_count.values())
+                least_frequent_keys = [k for k, v in self.usage_count.items()
+                                       if v == min_usage]
+
+                lru_key = self.usage_order.pop(0)
+                while lru_key not in least_frequent_keys:
+                    lru_key = self.usage_order.pop(0)
+
+                print(f"DISCARD: {lru_key}")
+                del self.cache_data[lru_key]
+                del self.usage_count[lru_key]
+
             self.cache_data[key] = item
-            ins_index = len(self.keys_freq)
-            for i, key_freq in enumerate(self.keys_freq):
-                if key_freq[1] == 0:
-                    ins_index = i
-                    break
-            self.keys_freq.insert(ins_index, [key, 0])
-        else:
-            self.cache_data[key] = item
-            self.__reorder_items(key)
+            self.usage_order.append(key)
+            self.usage_count[key] = self.usage_count.get(key, 0) + 1
 
     def get(self, key):
-        """Retrieves an item from the cache based on its key."""
-        if key is not None and key in self.cache_data:
-            self.__reorder_items(key)
-        return self.cache_data.get(key, None)
+        """
+        Retrieve an item from the cache.
+
+        Args:
+            key: The key to look up in the cache.
+
+        Returns:
+            The value associated with the key, or None if not found.
+        """
+        if key in self.cache_data:
+            self.usage_count[key] += 1
+            return self.cache_data[key]
+        return None

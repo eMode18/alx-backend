@@ -9,23 +9,33 @@ from base_caching import BaseCaching
 
 
 class BasicCache(BaseCaching):
+    """
+    A basic caching system that inherits from BaseCaching.
+    This cache has no size limit.
+    """
+
     def put(self, key, item):
-        """Adds an item to the cache.
+        """
+        Add an item to the cache.
 
         Args:
-            key: The identifier for the item.
-            item: The value to be stored.
+            key: The key for the cache entry.
+            item: The value to be stored in the cache.
+
+        Notes:
+            If key or item is None, this method does nothing.
         """
-        if key and item:
+        if key is not None and item is not None:
             self.cache_data[key] = item
 
     def get(self, key):
-        """Retrieves an item from the cache based on its key.
+        """
+        Retrieve an item from the cache.
 
         Args:
             key: The key to look up in the cache.
 
         Returns:
-            The corresponding item if found; otherwise, None.
+            The value associated with the key, or None if not found.
         """
-        return self.cache_data.get(key, None)
+        return self.cache_data.get(key)

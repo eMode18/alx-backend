@@ -11,35 +11,47 @@ Attributes:
 """
 
 from base_caching import BaseCaching
-from collections import OrderedDict
 
 
 class FIFOCache(BaseCaching):
+    """
+    A caching system that inherits from BaseCaching and uses FIFO algorithm.
+    """
+
     def __init__(self):
-        """Initializes the FIFO cache."""
+        """
+        Initialize the FIFO cache.
+        """
         super().__init__()
-        self.cache_data = OrderedDict()
 
     def put(self, key, item):
-        """Adds an item to the cache.
+        """
+        Add an item to the cache using FIFO algorithm.
 
         Args:
-            key: The identifier for the item.
-            item: The value to be stored.
+            key: The key for the cache entry.
+            item: The value to be stored in the cache.
+
+        Notes:
+            If key or item is None, this method does nothing.
+            If the cache size exceeds BaseCaching.MAX_ITEMS, discard the
+            oldest item.
         """
-        if key and item:
+        if key is not None and item is not None:
+            if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
+                oldest_key = next(iter(self.cache_data))
+                print(f"DISCARD: {oldest_key}")
+                del self.cache_data[oldest_key]
             self.cache_data[key] = item
-        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
-            first_key, _ = self.cache_data.popitem(False)
-            print("DISCARD:", first_key)
 
     def get(self, key):
-        """Retrieves an item from the cache based on its key.
+        """
+        Retrieve an item from the cache.
 
         Args:
             key: The key to look up in the cache.
 
         Returns:
-            The corresponding item if found; otherwise, None.
+            The value associated with the key, or None if not found.
         """
-        return self.cache_data.get(key, None)
+        return self.cache_data.get(key)
