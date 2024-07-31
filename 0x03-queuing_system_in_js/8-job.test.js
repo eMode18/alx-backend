@@ -26,12 +26,12 @@ describe('Test createPushNotificatinsJobs function', function() {
   it('Test whether jobs are created', function() {
     const jobs = [
       {
-        phoneNumber: '4153123456',
-        message: 'This is the code 2453 to verify your account'
+        phoneNumber: '4153518780',
+        message: 'This is the code 1234 to verify your account'
       },
       {
-        phoneNumber: '4153234567',
-        message: 'This is the code 9845 to verify your account'
+        phoneNumber: '4153518781',
+        message: 'This is the code 4562 to verify your account'
       },
     ];
 
